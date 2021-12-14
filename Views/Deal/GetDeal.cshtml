@@ -1,0 +1,200 @@
+﻿@model GrainMaster.Models.DealRoot
+@{
+    ViewBag.Title = "Deal";
+    Layout = "~/Views/Shared/_master.cshtml";
+}
+
+<script src="~/JS/jquery-1.10.2.js"></script>
+<style type="text/css">
+    #nav-tabContent{
+        background-color:white;
+    }
+</style>
+<div class="py-4 px-3 px-md-4">
+    <div class="mb-3 mb-md-4 d-flex justify-content-between">
+        <div class="h3 mb-0">
+            Deals
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <nav>
+                <div class="nav nav-tabs nav-fill" id="nav-tab" role="tablist">
+                    <a class="nav-item nav-link active" id="nav-onlybuy-tab" data-toggle="tab" href="#nav-onlybuy" role="tab" aria-controls="nav-onlybuy" aria-selected="true">Only Buy</a>
+                    <a class="nav-item nav-link" id="nav-onlysell-tab" data-toggle="tab" href="#nav-onlysell" role="tab" aria-controls="nav-onlysell" aria-selected="false">Only Sell</a>
+                    <a class="nav-item nav-link" id="nav-buygtsell-tab" data-toggle="tab" href="#nav-buygtsell" role="tab" aria-controls="nav-buygtsell" aria-selected="false">Buy Greater then Sell</a>
+                    <a class="nav-item nav-link" id="nav-sellgtbuy-tab" data-toggle="tab" href="#nav-sellgtbuy" role="tab" aria-controls="nav-sellgtbuy" aria-selected="false">Sell greater then Buy</a>
+                </div>
+            </nav>
+            <div class="tab-content" id="nav-tabContent">
+                <div class="tab-pane fade table-responsive-xl show active" id="nav-onlybuy" role="tabpanel" aria-labelledby="nav-onlybuy-tab">
+                    <table id="tblonlyBuy" class="table text-nowrap mb-0" style="width:100%;background-color:white !important;">
+                        <thead>
+                            <tr>
+                                <th>Company</th>
+                                <th>Total Quantity</th>
+                                <th>Price</th>
+                                <th>Date</th>
+                                <th id="thbtn"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model.OnlyBuy.Count() == 0)
+                            {
+                                <tr><td colspan="5" class="text-danger text-center">No Record found.</td></tr>
+                            }
+                            @foreach (var item in Model.OnlyBuy)
+                            {
+                                <tr>
+                                    <td id="tdCompany"><a href="#">@item.Company</a></td>
+                                    <td>@item.Quantity</td>
+                                    <td id="tdBuyPrice">@item.Price</td>
+                                    <td id="tddate">@item.TranDate</td>
+                                    <td id="tdbtn">
+                                        <button type="button" class="btn btn-success btn-sm rounded-pill" onclick="SaveCampaigen(this)">Add Campaigen</button>
+                                        @*<a href="#" onclick="SaveCampaigen(this)" class="add">Add Campaigen</a>*@
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                <div class="tab-pane table-responsive-xl fade" id="nav-onlysell" role="tabpanel" aria-labelledby="nav-onlysell-tab">
+                    <table id="tblOnlySell" class="table text-nowrap mb-0" style="width:100%;background-color:white !important;">
+                        <thead>
+                            <tr>
+                                <th>Company</th>
+                                <th>Total Quantity</th>
+                                <th>Price</th>
+                                <th>Date</th>
+                                <th id="thbtn"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model.OnlySell.Count() == 0)
+                            {
+                                <tr><td colspan="5" class="text-danger text-center">No Record found.</td></tr>
+                            }
+                            @foreach (var item in Model.OnlySell)
+                            {
+                                <tr>
+                                    <td id="tdCompany"><a href="#">@item.Company</a></td>
+                                    <td>@item.Quantity</td>
+                                    <td id="tdSellPrice">@item.Price</td>
+                                    <td id="tddate">@item.TranDate</td>
+                                    <td id="tdbtn"><button type="button" class="btn btn-success btn-sm rounded-pill" onclick="SaveCampaigen(this)">Add Campaigen</button></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                <div class="tab-pane table-responsive-xl fade" id="nav-buygtsell" role="tabpanel" aria-labelledby="nav-buygtsell-tab">
+                    <table id="tblBuyGTSell" class="table text-nowrap mb-0" style="width:100%;background-color:white !important;">
+                        <thead>
+                            <tr>
+                                <th>Company</th>
+                                <th>Total Buy Quantity</th>
+                                <th>Total Sell Quantity</th>
+                                <th>Total Buy Price</th>
+                                <th>Total Sell Price</th>
+                                <th>Date</th>
+                                <th id="thbtn"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model.BuyGTSell.Count() == 0)
+                            {
+                                <tr><td colspan="7" class="text-danger text-center">No Record found.</td></tr>
+                            }
+                            @foreach (var item in Model.BuyGTSell)
+                            {
+                                <tr>
+                                    <td id="tdCompany"><a href="#">@item.Company</a></td>
+                                    <td>@item.TotalBuyQuantity</td>
+                                    <td>@item.TotalSellQuantity</td>
+                                    <td id="tdBuyPrice">@item.TotalBuyPrice</td>
+                                    <td id="tdSellPrice">@item.TotalSellPrice</td>
+                                    <td id="tddate">@item.TransactionDate</td>
+                                    <td><button type="button" class="btn btn-success btn-sm rounded-pill" onclick="SaveCampaigen(this)">Add Campaigen</button></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                <div class="tab-pane table-responsive-xl fade" id="nav-sellgtbuy" role="tabpanel" aria-labelledby="nav-sellgtbuy-tab">
+                    <table id="tblSellGTBuy" class="table text-nowrap mb-0" style="width:100%;background-color:white !important;">
+                        <thead>
+                            <tr>
+                                <th>Company</th>
+                                <th>Tota Sell Quantity</th>
+                                <th>Tota Buy Quantity</th>
+                                <th>Total Sell Price</th>
+                                <th>Total Buy Price</th>
+                                <th>Date</th>
+                                <th id="thbtn"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model.SellGTBuy.Count() == 0)
+                            {
+                                <tr><td colspan="7" class="text-danger text-center">No Record found.</td></tr>
+                            }
+                            @foreach (var item in Model.SellGTBuy)
+                            {
+                                <tr>
+                                    <td id="tdCompany"><a href="#">@item.Company</a></td>
+                                    <td>@item.TotalSellQuantity</td>
+                                    <td>@item.TotalBuyQuantity</td>
+                                    <td id="tdSellPrice">@item.TotalSellPrice</td>
+                                    <td id="tdBuyPrice">@item.TotalBuyPrice</td>
+                                    <td id="tddate">@item.TransactionDate</td>
+                                    <td><button type="button" class="btn btn-success btn-sm rounded-pill" onclick="SaveCampaigen(this)">Add Campaigen</button></td>
+
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="~/wwwroot/js/tablepagination.js"></script>
+<script>
+    $(document).ready(function () {
+        //$.noConflict();
+        pagination("#tblOnlySell,#tblonlyBuy,#tblBuyGTSell,#tblSellGTBuy");
+        $("th#thbtn").removeClass("sorting");
+    });
+
+    function SaveCampaigen(event) {
+        try {
+            var tr = $(event).closest("tr");
+            var company = $(tr).find("#tdCompany") != undefined && $(tr).find("#tdCompany").length > 0 ? $(tr).find("#tdCompany").text() : "";
+            var buyPrice = $(tr).find("#tdBuyPrice") != undefined && $(tr).find("#tdBuyPrice").length > 0 ? $(tr).find("#tdBuyPrice").text() : null;
+            var sellPrice = $(tr).find("#tdSellPrice") != undefined && $(tr).find("#tdSellPrice").length > 0 ? $(tr).find("#tdSellPrice").text() : null;
+            var date = $(tr).find("#tddate") != undefined && $(tr).find("#tddate").length > 0 ? $(tr).find("#tddate").text() : "";
+            var data = { Name: company, TotalBuyPrice: buyPrice, TotalSellPrice: sellPrice, Date: date };
+            $.ajax({
+                type: 'POST',
+                dataType: 'json',
+                url: '/Campaigen/InsertCampaigen',
+                data: data,
+                success: function (response) {
+                    if (response != undefined && response) {
+                        alert("Data has been save !!")
+                    }
+                    
+                    console.log(response.data);
+                },
+                error: function (xhr, status, error) {
+                    alert("Result: " + status + " " + error + " " + xhr.status + " " + xhr.statusText)
+                }
+            });
+        }
+        catch{
+
+        }
+    }
+</script>
+

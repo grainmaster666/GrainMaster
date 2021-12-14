@@ -1,0 +1,77 @@
+﻿@model IEnumerable<GrainMaster.Models.CampaigenModel>
+@{
+    ViewBag.Title = "GetCampaigen";
+    Layout = "~/Views/Shared/_master.cshtml";
+}
+<script src="~/JS/jquery-1.10.2.js"></script>
+
+@if (ViewBag.Message != null)
+{
+
+    <div class="alert alert-success" role="alert">
+        @ViewBag.Messsage
+    </div>
+}
+<div class="py-4 px-3 px-md-4">
+    @*<div class="mb-3 mb-md-4 d-flex justify-content-between">
+        <div class="h3 mb-0">
+            Deals
+        </div>
+    </div>*@
+    <div class="row">
+        <div class="col-12">
+            <div class="card mb-3 mb-md-4">
+                <div class="card-header">
+                    <h5 class="font-weight-semi-bold mb-0">Campaigen Result</h5>
+                </div>
+
+                <div class="card-body pt-0">
+                    <div class="table-responsive-xl">
+                        <table id="table1" class="table text-nowrap mb-0">
+                            <thead>
+                                <tr>
+                                    <th class="font-weight-semi-bold border-top-0 py-2">Name</th>
+                                    <th class="font-weight-semi-bold border-top-0 py-2">Buy Price</th>
+                                    <th class="font-weight-semi-bold border-top-0 py-2">Sell Price</th>
+                                    <th class="font-weight-semi-bold border-top-0 py-2">Current Price</th>
+                                    <th class="font-weight-semi-bold border-top-0 py-2">Date</th>
+                                    <th class="font-weight-semi-bold border-top-0 py-2">Price change(%)</th>
+                                    <th class="font-weight-semi-bold border-top-0 py-2" id="thbtn"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (Model.Count() == 0)
+                                {
+                                    <tr><td colspan="7" class="text-danger text-center">No Record found.</td></tr>
+                                }
+
+                                @foreach (var item in Model)
+                                {
+                                    <tr>
+                                        <td class="py-3">@item.Name</td>
+                                        <td class="py-3">
+                                            @item.TotalBuyPrice
+                                        </td>
+                                        <td class="py-3">₹@item.TotalSellPrice</td>
+                                        <td class="py-3">₹@item.CurrentPrice</td>
+                                        <td class="py-3">@item.Date.ToString("MM/dd/yyyy")</td>
+                                        <td class="py-3">0 % </td>
+                                        <td class="py-3">@Html.ActionLink("Delete", "Delete", new { id = item.Id }, new { @class = "btn btn-danger btn-sm rounded-pill", onclick = "return confirm('Are you sure you wish to delete this Campaigen?');" })</td>
+                                    </tr>
+                                }
+
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+    <script src="~/wwwroot/js/tablepagination.js"></script>
+    <script>
+        $(document).ready(function () {
+            pagination("#table1");
+            $("th#thbtn").removeClass("sorting");
+        });
+    </script>

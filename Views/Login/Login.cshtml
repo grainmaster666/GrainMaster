@@ -1,0 +1,187 @@
+﻿@model GrainMaster.Models.User
+
+@{
+    Layout = null;
+}
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Login | Graindashboard UI Kit</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="~/public/img/favicon.ico">
+
+    <!-- Template -->
+    <link rel="stylesheet" href="~/public/graindashboard/css/graindashboard.css">
+
+    <script src="https://apis.google.com/js/platform.js" async defer></script>
+    <script type="text/javascript">
+        var OAUTHURL = 'https://accounts.google.com/o/oauth2/auth?';
+        var VALIDURL = 'https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=';
+        var SCOPE = 'https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email';
+        var CLIENTID = '158755680454-68f4dk2nq2sim62s9c89kp6epe93fi3p.apps.googleusercontent.com';
+        var REDIRECT = 'https://localhost:44304/DashBoard/Dashboard';
+        var TYPE = 'token';
+        var _url = OAUTHURL + 'scope=' + SCOPE + '&client_id=' + CLIENTID + '&redirect_uri=' + REDIRECT + '&response_type=' + TYPE;
+        var acToken;
+        var tokenType;
+        var expiresIn;
+        var user;
+        var loggedIn = false;
+        function login() {
+
+            var win = window.open(_url, '_blank').focus();
+            var pollTimer = window.setInterval(function () {
+                try {
+                    console.log(win.document.URL);
+                    if (win.document.URL.indexOf(REDIRECT) != -1) {
+                        window.clearInterval(pollTimer);
+                        var url = win.document.URL;
+                        acToken = gup(url, 'access_token');
+                        tokenType = gup(url, 'token_type');
+                        expiresIn = gup(url, 'expires_in');
+                        validateToken(acToken);
+                    }
+                }
+                catch (e) {
+
+                }
+            }, 500);
+        }
+        function gup(url, name) {
+            namename = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
+            var regexS = "[\\#&]" + name + "=([^&#]*)";
+            var regex = new RegExp(regexS);
+            var results = regex.exec(url);
+            if (results == null)
+                return "";
+            else
+                return results[1];
+        }
+
+        function validateToken(token) {
+
+            getUserInfo();
+            $.ajax({
+
+                url: VALIDURL + token,
+                data: null,
+                success: function (responseText) {
+                    console.log(responseText);
+                },
+            });
+        }
+
+        function getUserInfo() {
+            $.ajax({
+                url: 'https://www.googleapis.com/oauth2/v1/userinfo?access_token=' + acToken,
+                data: null,
+                success: function (resp) {
+                    user = resp;
+                    console.log(user);
+                    localStorage.setItem("UserName", user.name);
+                },
+            }),
+                $.ajax({
+                    url: '/category/GoogleLogin/',
+                    type: 'POST',
+                    data: {
+                        email: user.email,
+                        name: user.name,
+                        gender: user.gender,
+                        lastname: user.lastname,
+                        location: user.location
+                    },
+                    success: function () {
+                        window.location.href = "/DashBoard/Dashboard/";
+                    },
+                });
+        }
+
+    </script>
+</head>
+<body>
+    <main class="main">
+
+        <div class="content">
+
+            <div class="container-fluid pb-5">
+
+                <div class="row justify-content-md-center">
+                    <div class="card-wrapper col-12 col-md-4 mt-5">
+                        <div class="brand text-center mb-3">
+                            <a href="/"><img src="~/public/img/logo.png"></a>
+                        </div>
+                        <div class="card">
+                            <div class="card-body">
+                                <h4 class="card-title">Login</h4>
+                                <span style="color:red;margin-left:25%;">@TempData["msg"]</span>
+                                @using (Html.BeginForm("Login", "Login", FormMethod.Post))
+                                {
+
+                                    <div class="form-group">
+                                        <label for="email">E-Mail Address</label>
+                                        @Html.TextBoxFor(m => m.Email, new { @class = "form-control", type = "email", id = "txtEmail", required = "", autofocus = "" })
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="password">
+                                            Password
+                                        </label>
+                                        @Html.TextBoxFor(m => m.Password, new { @class = "form-control", id = "txtPassword", type = "password", required = "" })
+                                        <div class="text-right">
+                                            <a href="~/Login/ResetPassword" class="small">
+                                                Forgot Your Password?
+                                            </a>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <div class="form-check position-relative mb-2">
+                                            <input type="checkbox" class="form-check-input d-none" id="remember" name="remember">
+                                            <label class="checkbox checkbox-xxs form-check-label ml-1" for="remember"
+                                                   data-icon="&#xe936">Remember Me</label>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group no-margin">
+                                        <input type="submit" value="Sign In" class="btn btn-primary btn-block" />
+                                    </div>
+                                    <div class="text-center mt-3 small">
+                                        Don't have an account? <a href="~/Register/Register">Sign Up</a>
+                                    </div>
+
+                                }
+                            <div class="text-center mt-3 small" style="display:none;">                                
+                                <section>
+                                    <button class="button" id="GoogleLogin" onclick="login()" style="background-color:#e82121"><i class="fa fa-google-plus"></i> Sign in with Google</button>
+                                </section>
+                            </div>
+
+                            </div>
+                        </div>
+                        <footer class="footer mt-3">
+                            <div class="container-fluid">
+                                <div class="footer-content text-center small">
+                                    <span class="text-muted">&copy; @DateTime.Now.Year Graindashboard. All Rights Reserved.</span>
+                                </div>
+                            </div>
+                        </footer>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script src="~/public/graindashboard/js/graindashboard.js"></script>
+    <script src="~/public/graindashboard/js/graindashboard.vendor.js"></script>
+
+</body>
+</html>
+

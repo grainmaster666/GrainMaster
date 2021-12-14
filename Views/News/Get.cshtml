@@ -1,0 +1,42 @@
+﻿@model IEnumerable<GrainMaster.Models.NewsRepository>
+@using GrainMaster.Models
+@{
+    ViewBag.Title = "News";
+    Layout = "~/Views/Shared/_master.cshtml";
+}
+<style>
+    .card-body > p {
+        white-space: normal !important;
+    }
+
+    #NewsHead {
+        margin-left: 2.5%;
+    }
+</style>
+<h2 id="NewsHead">News & Opinions</h2>
+
+<div class="card-body pt-0">
+    <div class="table-responsive-xl">
+        <table class="table text-nowrap mb-0">
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td style="width:20%;">
+                            <img src="@item.Image" class="card-img-top" alt="...">
+                        </td>
+                        <td>
+                            <div class="card" style="width: 50rem;">
+                                <div class="card-body">
+                                   <a href="@item.Link" class="card-title">@item.Title</a>
+                                    <p class="card-text">@(item.Description.ToString().Length > 500 ? item.Description.Substring(0,500)+"....." : item.Description )</p>                                   
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+

@@ -1,0 +1,410 @@
+﻿@model GrainMaster.Models.CombinedModel
+@{
+    ViewBag.Title = "CreatePortFolio";
+    Layout = "~/Views/Shared/_master.cshtml";
+}
+
+<link href="~/JS/jquery-ui.css" rel="stylesheet" />
+<script src="~/JS/jquery-1.10.2.js"></script>
+<script src="~/JS/jquery-ui.js"></script>
+<style>
+    #PortFolio_StockName, #txtQuantity, #txtPrice, #PortFolio_Date, #txtTPSID, select#ddlPurchaseType {
+        min-width: 0px !important;
+        max-width: 95% !important;
+        /*margin-left: 6% !important;*/
+    }
+    #btnAddPst, #btnUpdatePst {
+        margin-top: 2rem;
+    }
+
+    #lblTPSID, #lblTPUrl {
+        margin-left: 1rem !important;
+    }
+
+    .spinner-grow {
+        position: absolute;
+        top: 1rem;
+        right: 0px;
+    }
+    div.ist {
+        margin-top: 2rem;
+        margin-left: 1rem !important;
+    }
+    div.IInd{
+        margin-left: 1rem !important;
+    }
+    div.IIIrd {
+        display: none;
+        margin-left: 1rem !important;
+    }
+    .visible {
+        visibility: visible;
+    }
+
+    .invisible {
+        visibility: hidden;
+    }
+</style>
+
+
+<script>
+    $(document).ready(function () {
+        $("#PortFolio_Date").datepicker({
+            dateFormat: "dd-mm-yy",
+            changeMonth: true,
+            changeYear: true,
+            maxDate: new Date()
+        });
+
+        $("#PortFolio_StockName").autocomplete({
+            source: function (request, response) {
+                $.ajax({
+                    url: "/PortFolio/StockDetail",
+                    type: "POST",
+                    dataType: "json",
+                    data: { Prefix: request.term },
+                    success: function (data) {
+                        if (data.length == 0) {
+                            localStorage.removeItem("stock");
+                            return;
+                        } else {
+                            localStorage.setItem("stock", JSON.stringify(data));
+                            response($.map(data, function (item) {
+                                return { label: item.Name, value: item.Name };
+                            }))
+                        }
+                    }
+                })
+            },
+            change: function (event, ui) {
+                $("#lblTPSID,#lblTPUrl").html("");
+                GetTP(ui.item.label);
+            },
+            select: function (event, ui) {
+                $("#lblTPSID,#lblTPUrl").html("");
+                GetTP(ui.item.label);
+            },
+            messages: {
+                noResults: "", results: ""
+            }
+        });
+
+        $("#btnAddPst").css("display", "block");
+    });
+
+    function GetTP(CompanyName) {
+        try {
+            $.ajax({
+                url: "/PortFolio/GetCompanyTP",
+                type: "POST",
+                dataType: "json",
+                data: { CName: CompanyName },
+                success: function (data) {
+                    if (data != undefined) {
+                        $("div.IIIrd").show();
+                        if (data.TPSID != "")
+                            $("#lblTPSID").wrapInner("<b>TP SID : </b>" + data.TPSID);
+                        if (data.URL != "")
+                            $("#lblTPUrl").wrapInner("<b>URL : </b>" + data.URL);
+                    }
+                    else {
+                        $("#lblTPSID,#lblTPUrl").html("");
+                    }
+                }
+            });
+        }
+        catch{
+
+        }
+    }
+    function ValidateStock() {
+        var msg = "";
+        msg += validation();
+        var txtStock = $("#PortFolio_StockName").val();
+        if (!stockExists(txtStock))
+            msg += "Stock Name is not matching with sytem data !!";
+
+        if (msg.trim() != "") {
+            alert(msg);
+            return false;
+        }
+    }
+    function stockExists(stockName) {
+        if (localStorage.getItem("stock") != null) {
+            var arr = JSON.parse(localStorage.getItem("stock"));
+            return arr.some(function (el) {
+                return el.Name === stockName;
+            });
+        }
+        return false;
+    }
+    function validation() {
+        var msg = "";
+        var txtPrice = $("#txtPrice").val();
+        if ( !$.isNumeric(txtPrice)) {
+            msg += "Price should be numeric!!\n";
+        }
+        var txtQuantity = $("#txtQuantity").val();
+        if (!$.isNumeric(txtQuantity)) {
+            msg += "Quantity should be numeric!!";
+        }
+
+        return msg;
+    }
+
+    function BindInfo(StockName, Price, Quantity, ID, date, PurchaseType)
+    {
+        localStorage.removeItem("ID");
+
+        $("#btnAddPst").css("display", "none");
+        $("#btnUpdatePst").css("display", "block");
+
+        if (StockName != "")
+            $("#PortFolio_StockName").val(StockName);
+        if (Price != "")
+            $("#txtPrice").val(Price);
+        if (Quantity != "")
+            $("#txtQuantity").val(Quantity);
+        if (PurchaseType != undefined)
+            $("select#ddlPurchaseType").prop('selectedIndex', PurchaseType);
+        if (date != null && date != "")
+            $("#PortFolio_Date").val(date.toString("dd/MM/yyy"));
+
+        localStorage.setItem("ID", ID);
+    }
+
+    function Update() {
+        validation();
+        var name = $("#PortFolio_StockName").val();
+        var price = $("#txtPrice").val();
+        var quantity = $("#txtQuantity").val();
+        var purchaseType = $("select#ddlPurchaseType").prop('selectedIndex');
+        var date = $("#PortFolio_Date").val();
+        try {
+            $.ajax({
+                url: "/PortFolio/UpdatePortFolio",
+                type: "POST",
+                dataType: "json",
+                data: { ID: parseInt(localStorage.getItem("ID")), StockName: name, Quantity: quantity, Price: price, Date: date, PurchaseType: purchaseType },
+                success: function (data) {
+                    if (data != undefined && data) {
+                        alert("Portfolio updated successfully!!");
+                        clear();
+                        $("#btnUpdatePst").css("display", "none");
+                        $("#btnAddPst").css("display", "block");
+                        location.reload();
+                    }
+                },
+                error: function (xhr, status, error) {
+                    alert("Result: " + status + " " + error + " " + xhr.status + " " + xhr.statusText)
+                }
+            });
+        }
+        catch (e) {
+            console.log(e.messages);
+        }
+    }
+
+    function clear()
+    {
+        $("#PortFolio_StockName").val("");
+        $("#txtPrice").val("");
+        $("#txtQuantity").val("");
+        $("select#ddlPurchaseType").prop('selectedIndex',-1);
+        $("#PortFolio_Date").val("");
+        localStorage.removeItem("ID");
+
+    }
+</script>
+
+<div class="py-4 px-3 px-md-4">
+
+    <div class="mb-3 mb-md-4 d-flex justify-content-between">
+        <div class="h3 mb-0">
+            Positions ( Money doesn't grow on trees )
+        </div>
+    </div>
+    @using (Html.BeginForm("CreatePortFolio", "PortFolio", FormMethod.Post))
+    {
+        @Html.AntiForgeryToken()
+        <div class="card h-100">
+            <div class="card-body p-0 border">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="row ist">
+                            <div class="form-group col-md-3">
+                                <label for="name">Stock Name</label><span class = "text-danger">*</span>
+                                @Html.EditorFor(m => m.PortFolio.StockName, new { htmlAttributes = new { @class = "form-control", required = "", autofocus = "" } })
+                            </div>
+                            <div class="form-group col-md-3">
+                                <label for="purchaseType">Type</label>&nbsp;<span class="text-danger">*</span>
+                                @Html.DropDownList("ddlPurchaseType", new List<SelectListItem>
+                                {   new SelectListItem { Text = "Buy", Value = "1"},
+                                    new SelectListItem { Text = "Sell", Value = "2"}
+                                }, "--Select--", new { @class = "form-control", id = "ddlPurchaseType", required = "" })
+                            </div>
+                            <div class="col-auto">
+                                <label for="tpsid">TP SID</label>
+                                @Html.TextBoxFor(m => m.PortFolio.TPSID, new { @class = "form-control", id = "txtTPSID", autocomplete = "off" })
+                            </div>
+                            <div class="col-auto">
+                                <label for="quantity">Quantity</label>
+                                @Html.ValidationMessageFor(m => m.PortFolio.Quantity, "*", new { @class = "text-danger" })
+                                @Html.TextBoxFor(m => m.PortFolio.Quantity, new { @class = "form-control", id = "txtQuantity", required = "", autocomplete = "off" })
+                            </div>
+
+                        </div>
+                        <div class="row IInd">
+                            <div class="form-group col-md-3">
+                                <label for="price">Price</label>
+                                @Html.ValidationMessageFor(m => m.PortFolio.Price, "*", new { @class = "text-danger" })
+                                @Html.TextBoxFor(m => m.PortFolio.Price, new { @class = "form-control", id = "txtPrice", required = "", autocomplete = "off" })
+
+                            </div>
+                            <div class="col-3">
+                                <label for="date">Date</label>
+                                @Html.ValidationMessageFor(m => m.PortFolio.Date, "*", new { @class = "text-danger" })
+                                @Html.EditorFor(m => m.PortFolio.Date, new { htmlAttributes = new { @class = "form-control", required = "", autocomplete = "off" } })
+                            </div>
+                            <div class="form-group col-4">
+                                <input type="submit" id="btnAddPst" value="Add Position" class="btn btn-primary" onclick=" return ValidateStock();" />
+                                <input type="button" id="btnUpdatePst" value="Update" class="btn btn-primary" style="display:none;" onclick=" return Update();"  />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row IIIrd" id="lblRow">
+                    <div class="form-group">
+                        <label id="lblTPSID"></label>
+                        <label id="lblTPUrl"></label>
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+     }
+        <div class="row">
+            <div class="form-group">
+                <label></label>
+            </div>
+        </div>
+        <div class="row">
+            @if (Model != null && Model.PortFolioList != null)
+            {
+
+                foreach (var item in Model.PortFolioList)
+                {
+                    <div class="col-md-6 col-xl-4 mb-3 mb-md-4">
+                        <!-- Card -->
+                        <div class="card h-100">
+                            <div class="card-header d-flex">
+                                <h5 class="h6 font-weight-semi-bold text-uppercase mb-0">@item.StockName</h5>
+                                <div class="spinner-grow text-success" role="status">
+                                    <span class="sr-only">Loading...</span>
+                                </div>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="media align-items-center px-3 px-md-4 mb-3 mb-md-4">
+                                    <div class="media-body">
+                                        <h4 class="h3 lh-1 mb-2">₹@((int)Convert.ToDecimal(item.Price)) X @item.Quantity = ₹@((int)Convert.ToDecimal(item.Price) * (int)Convert.ToDecimal(item.Quantity)) </h4>
+                                        <p class="small text-muted mb-0">
+                                            +₹7,213.38 <span class="text-success mx-1">+10.23%</span>
+                                        </p>
+                                        <p class="small text-muted mb-0" style="padding-top:5px;">
+                                            <a href="../Deal/GetDeal" style="display:@(item.ISDealType.IsPositiveDeal || item.ISDealType.IsNegativeDeal  ? "" : "none")" class="badge badge-pill badge-success" target="_blank">@(item.ISDealType.IsPositiveDeal? "Positive Deals" : "Negative Deals" )</a>
+                                            <a href="@(item.Count > 0 ? item.link : "#")" style="display:@(item.Count > 0 ? "" : "none")" class="badge badge-pill badge-success" target="_blank">News</a>
+                                            <a href="#" class="badge badge-pill badge-success">Volume Spiked</a>
+                                        </p>
+                                        <p class="small text-muted mb-0" style="padding-top:15px;">
+                                            <span class="badge badge-complex bg-semi-soft-primary text-white">
+                                                <span class="badge badge-sm badge-danger rounded-circle mr-2">LD</span>
+                                                <span style="font-size:medium;">@(item.DeliveryYesterday != "" ? item.DeliveryYesterday : "0%")&nbsp;&nbsp;</span>
+                                            </span>
+                                            <span class="badge  badge-complex bg-semi-soft-primary text-white">
+                                                <span class="badge badge-sm badge-danger rounded-circle mr-2">WD</span>
+                                                <span style="font-size:medium;">@(item.DeliveryAverageWeek!= "" ? item.DeliveryYesterday : "0%")&nbsp;&nbsp;</span>
+                                            </span>
+                                            <span class="badge  badge-complex bg-semi-soft-primary text-white">
+                                                <span class="badge badge-sm badge-danger rounded-circle mr-2">MD</span>
+                                                <span style="font-size:medium;">@(item.DeliveryAverageMonth!= "" ? item.DeliveryYesterday : "0%")&nbsp;&nbsp;</span>
+                                            </span>
+                                        </p>
+                                        <p class="small text-muted mb-0" style="padding-top:5px;">
+                                            <span class="badge badge-complex bg-semi-soft-danger text-white">
+                                                <span class="badge badge-sm badge-danger rounded-circle mr-2">S1</span>
+                                                <span style="font-size:medium;">₹@item.S1</span>
+                                            </span>
+                                            <span class="badge  badge-complex bg-semi-soft-danger text-white">
+                                                <span class="badge badge-sm badge-danger rounded-circle mr-2">S2</span>
+                                                <span style="font-size:medium;">₹@item.S2</span>
+                                            </span>
+                                            <span class="badge  badge-complex bg-semi-soft-danger text-white">
+                                                <span class="badge badge-sm badge-danger rounded-circle mr-2">S3</span>
+                                                <span style="font-size:medium;">₹@item.S3</span>
+                                            </span>
+                                        </p>
+                                        <p class="small text-muted mb-0" style="padding-top:5px;">
+                                            <span class="badge badge-complex bg-semi-soft-primary-darker text-white">
+                                                <span class="badge badge-sm badge-danger rounded-circle mr-2">R1</span>
+                                                <span style="font-size:medium;">₹@item.R1</span>
+                                            </span>
+                                            <span class="badge  badge-complex bg-semi-soft-primary-darker text-white">
+                                                <span class="badge badge-sm badge-danger rounded-circle mr-2">R2</span>
+                                                <span style="font-size:medium;">₹@item.R2</span>
+                                            </span>
+                                            <span class="badge  badge-complex bg-semi-soft-primary-darker text-white">
+                                                <span class="badge badge-sm badge-danger rounded-circle mr-2">R3</span>
+                                                <span style="font-size:medium;">₹@item.R3</span>
+                                            </span>
+                                        </p>
+                                        <p class="small text-muted mb-0" style="padding-top:5px;">
+                                            <span class="badge badge-complex bg-semi-soft-primary text-white">
+                                                <span class="badge badge-sm badge-danger rounded-circle mr-2">5</span>
+                                                <span style="font-size:medium;">₹@item.SMA5</span>
+                                            </span>
+                                            <span class="badge  badge-complex bg-semi-soft-primary text-white">
+                                                <span class="badge badge-sm badge-danger rounded-circle mr-2">10</span>
+                                                <span style="font-size:medium;">₹@item.SMA10</span>
+                                            </span>
+                                            <span class="badge  badge-complex bg-semi-soft-primary text-white">
+                                                <span class="badge badge-sm badge-danger rounded-circle mr-2">20</span>
+                                                <span style="font-size:medium;">₹@item.SMA20</span>
+                                            </span>
+                                        </p>
+                                        <p class="small text-muted mb-0" style="padding-top:5px;">
+                                            <span class="badge badge-complex bg-semi-soft-primary text-white">
+                                                <span class="badge badge-sm badge-danger rounded-circle mr-2">50</span>
+                                                <span style="font-size:medium;">₹@item.SMA50</span>
+                                            </span>
+                                            <span class="badge  badge-complex bg-semi-soft-primary text-white">
+                                                <span class="badge badge-sm badge-danger rounded-circle mr-2">100</span>
+                                                <span style="font-size:medium;">₹@item.SMA100</span>
+                                            </span>
+                                            <span class="badge  badge-complex bg-semi-soft-primary text-white">
+                                                <span class="badge badge-sm badge-danger rounded-circle mr-2">200</span>
+                                                <span style="font-size:medium;">₹@item.SMA200</span>
+                                            </span>
+                                        </p>
+
+                                        <p class="small mb-0 text-darker" style="padding-top:25px;">
+                                            <button class="btn btn-warning btn-sm rounded-pill" type="button" onclick=" return BindInfo('@item.StockName.ToString()', @item.Price, @item.Quantity, @item.ID, '@item.Date',@item.PurchaseType)">Edit</button>
+                                            
+                                            @Html.ActionLink("Delete", "DeletePortFolio", "PortFolio", new { id = @item.ID },new { @class="btn btn-danger btn-sm rounded-pill"})
+                                            
+                                        </p>
+                                        <p class="small mb-0 text-darker" style="text-align:right;">
+                                                Added : <strong>@Convert.ToDateTime(item.Date).ToString("dd MMMM yyy")</strong>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+
+

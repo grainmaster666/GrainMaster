@@ -1,0 +1,93 @@
+﻿@model GrainMaster.Models.ChangePasswordModel
+@{
+    ViewBag.Title = "Settings";
+    Layout = "~/Views/Shared/_master.cshtml";
+}
+
+
+
+<div class="py-4 px-3 px-md-4">
+    <div class="card mb-3 mb-md-4">
+
+        <div class="card-body">
+            <!-- Breadcrumb -->
+            @*<nav class="d-none d-md-block" aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a href="#">Profile</a>
+                    </li>
+                    <li class="breadcrumb-item active" aria-current="page">Update Settings</li>
+                </ol>
+            </nav>*@
+            <!-- End Breadcrumb -->
+
+            <div class="mb-3 mb-md-4 d-flex justify-content-between">
+                <div class="h3 mb-0">Update Settings</div>
+            </div>
+
+
+            <!-- Form -->
+            <div>
+                @using (Html.BeginForm("Settings", "DashBoard", FormMethod.Post))
+                {
+                    @Html.AntiForgeryToken()
+                    <div class="form-row"><span class="text-danger msg">@ViewData["result"]</span></div>
+                    <div class="form-row">
+                        <div class="form-group col-12 col-md-6">
+                            <label for="name">Name</label>
+                            <input type="text" class="form-control" value="@UserLogic.LoggedUser.Name" id="name" name="name" placeholder="User Name" readonly>
+                        </div>
+                        <div class="form-group col-12 col-md-6">
+                            <label for="email">Email</label>
+                            <input type="email" class="form-control" value="@UserLogic.LoggedUser.Email" id="email" name="email" placeholder="User Email" readonly>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="col-12">
+                            <div class="font-weight-semi-bold h5 mb-3">Change Password</div>
+                        </div>
+                        <div class="form-group col-12 col-md-4">
+                            <label for="old_password">Current Password</label>
+                            <span class="text-danger">*</span>
+                            @Html.TextBoxFor(m => m.Password, new { @class = "form-control", required = "", type = "password", id = "txtOldPass", autocomplete = "off" })
+                        </div>
+                        <div class="form-group col-12 col-md-4">
+                            <label for="password">New Password</label>
+                            <span class="text-danger">*</span>
+                            @Html.TextBoxFor(m => m.NewPassword, new { @class = "form-control", required = "", type = "password", id = "txtNewPass", autocomplete = "off" })
+                        </div>
+                        <div class="form-group col-12 col-md-4">
+                            <label for="password_confirm">Repeat New Password</label>
+                            <span class="text-danger">*</span>
+                            @Html.TextBoxFor(m => m.ConfirmNewPassword, new { @class = "form-control", required = "", type = "password", id = "txtCnfNewPass", autocomplete = "off" })
+                        </div>
+                    </div>
+                    <input type="submit" class="btn btn-primary float-right" value="Update" onclick="return Validation();"/>
+                }
+            </div>
+            <!-- End Form -->
+        </div>
+    </div>
+</div>
+<script src="~/JS/jquery-1.10.2.js"></script>
+<script>
+    function Validation() {
+
+        if ($("#txtOldPass").val() == $("#txtNewPass").val()) {
+            $("span.msg").text("Current password and new password should not be same !!");
+            return false;
+        }
+        if ($("#txtNewPass").val() != $("#txtCnfNewPass").val()) {
+            $("span.msg").text('New password and confirm password should be matched !!');
+            return false;
+        }
+
+        $("span.msg").text('@ViewData["result"]');
+        $("#txtOldPass").val('');
+        $("#txtNewPass").val('');
+        $("#txtCnfNewPass").val('');
+        
+    }
+</script>
+
+

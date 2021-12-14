@@ -1,0 +1,86 @@
+﻿@model IEnumerable<GrainMaster.Models.CryptoModel>
+@{
+    ViewBag.Title = "GetCampaigen";
+    Layout = "~/Views/Shared/_master.cshtml";
+}
+<meta http-equiv="Refresh" content="90">
+<script src="~/JS/jquery-1.10.2.js"></script>
+<script src="~/JS/jquery.dataTables.min.js"></script>
+<script src="~/JS/dataTables.bootstrap4.min.js"></script>
+<link href="~/Content/dataTables.bootstrap4.min.css" rel="stylesheet" />
+
+@if (ViewBag.Message != null)
+{
+
+    <div class="alert alert-success" role="alert">
+        @ViewBag.Messsage
+    </div>
+}
+
+<div class="py-4 px-3 px-md-4">
+    <div class="mb-3 mb-md-4 d-flex justify-content-between">
+        <div class="h3 mb-0">Cryptocurrency Screener</div>
+    </div>
+    <div class="row">
+        <div class="col-12">
+            <div class="card mb-3 mb-md-4">
+                @*<div class="card-header">
+                        <h5 class="font-weight-semi-bold mb-0">Cryptocurrency Screener</h5>
+                    </div>*@
+
+                <div class="card-body pt-0">
+                    <div class="table-responsive-xl">
+                        <table id="table1" class="table text-nowrap mb-0">
+                            <thead>
+                                <tr>
+                                    <th class="font-weight-semi-bold border-top-0 py-2 thImage"></th>
+                                    @*<th class="font-weight-semi-bold border-top-0 py-2">Name</th>*@
+                                    <th class="font-weight-semi-bold border-top-0 py-2 thSymbol">Symbol</th>
+                                    <th class="font-weight-semi-bold border-top-0 py-2">Current Price</th>
+                                    <th class="font-weight-semi-bold border-top-0 py-2">Volume (15 Min) %</th>
+                                    <th class="font-weight-semi-bold border-top-0 py-2">Volume (30 Min) %</th>
+                                    <th class="font-weight-semi-bold border-top-0 py-2">Volume (1 h) %</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (Model.Count() == 0)
+                                {
+                                    <tr><td colspan="7" class="text-danger text-center">No Record found.</td></tr>
+                                }
+
+                                @foreach (var item in Model)
+                                {
+                                    <tr>
+                                        <td class="py-3"><img src="@item.Image" alt="" style="width:3rem;" /></td>
+                                        @*<td class="py-3">@item.Name</td>*@
+                                        <td class="py-3">@item.Symbol</td>
+                                        <td class="py-3">@item.CurrentPrice</td>
+                                        <td class="py-3" style="color:@(item.Volume_Change_15M_percent>=0 ? "lawngreen" : "red")">@item.Volume_Change_15M_percent</td>
+                                        <td class="py-3" style="color:@(item.Volume_Change_30M_percent>=0 ? "lawngreen" : "red")">@item.Volume_Change_30M_percent</td>
+                                        <td class="py-3" style="color:@(item.Volume_Change_1h_percent>=0 ? "lawngreen" : "red")">@item.Volume_Change_1h_percent</td>
+                                    </tr>
+                                }
+
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="~/wwwroot/js/tablepagination.js"></script>
+<script>
+    $(document).ready(function () {
+        // $.noConflict();
+        DealTablePagination("#table1");
+        $(".thImage").removeClass("sorting_asc");
+        $(".thSymbol").addClass("sorting_asc");
+    });
+   
+    
+</script>
+
+
+
